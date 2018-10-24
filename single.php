@@ -1,5 +1,5 @@
 <?php get_header(); ?>
 
-<pre>[INDEX]</pre>
+<pre>[SINGLE]</pre>
 
 <?php get_footer(); ?>
