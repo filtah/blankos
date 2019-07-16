@@ -75,8 +75,8 @@
 
 
 		// Add Custom Image sizes..
-		add_image_size('small', 400, 300);
-		add_image_size('hd', 1920, 1080);
+		add_image_size('small', 375, 375);
+		add_image_size('hd', 1920, 1920);
 
 
 		// Add post formats
@@ -126,26 +126,107 @@
 	 */
 	function blankos_load_google_fonts() {
 
-		if( ! defined( 'GOOGLE_FONTS' ) ) return;
+		if ( ! defined( 'GOOGLE_FONTS' ) ) return;
 
 		echo '<!-- google fonts -->'."\n";
-		echo '<link href="//fonts.googleapis.com/css?family=' . GOOGLE_FONTS . '" rel="stylesheet" type="text/css" />'."\n";
+		echo '<link href="https://fonts.googleapis.com/css?family='.GOOGLE_FONTS.'&display=swap" rel="stylesheet">'."\n";
 
 	}
-	add_action( 'wp_head', 'blankos_load_google_fonts' , 1);
+	add_action( 'wp_head', 'blankos_load_google_fonts', 1 );
+
+
+	/**
+	 * Cleanup..
+	 */
+	remove_action( 'wp_head', 'wp_generator' );
+	remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+	remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+	remove_action( 'wp_print_styles', 'print_emoji_styles' );
+	remove_action( 'admin_print_styles', 'print_emoji_styles' );
+
+	function blankos_deregister_styles() {
+		wp_dequeue_style( 'wp-block-library' );
+	}
+	add_action( 'wp_print_styles', 'blankos_deregister_styles', 100 );
+
+	function blankos_deregister_scripts() {
+		wp_deregister_script( 'wp-embed' );
+	}
+	add_action( 'wp_footer', 'blankos_deregister_scripts' );
+
+
+/* Enqueue
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+	/**
+	 * Enqueue styles..
+	 */
+	function blankos_enqueue_styles() {
+
+		wp_enqueue_style( 'libs', CSS.'/libs.css', false, VERSION );
+		wp_enqueue_style( 'main', CSS.'/main.css', false, VERSION );
+	}
+	add_action( 'wp_enqueue_scripts', 'blankos_enqueue_styles' );
+
+
+	/**
+	 * Enqueue scripts..
+	 */
+	function blankos_enqueue_scripts() {
+
+		wp_enqueue_script( 'libs', JS.'/libs.js', ['jquery'], VERSION, true );
+		wp_enqueue_script( 'main', JS.'/main.js', ['libs'], VERSION, true );
+	}
+	add_action( 'wp_enqueue_scripts', 'blankos_enqueue_scripts' );
+
+
+/* Nav
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+	/*
+	 * Add classes to the list items of the menus..
+	 */
+	function blankos_nav_menu_link_attributes( $atts, $item, $args ) {
+
+		if ($args->link_class) {
+			$atts['class'] = $args->link_class;
+		}
+
+		return $atts;
+	}
+	add_filter( 'nav_menu_link_attributes', 'blankos_nav_menu_link_attributes', 1, 3 );
+
+
+	/*
+	 * Add the option to add classes to list items..
+	 */
+	function blankos_nav_menu_css_class($classes, $item, $args) {
+
+		if ($args->list_item_class) {
+			$classes[] = $args->list_item_class;
+		}
+
+		// let's add "active" as a class to the li
+		if( in_array('current-menu-item', $classes) ){
+			$classes[] = 'active ';
+		}
+
+		return $classes;
+	}
+	add_filter('nav_menu_css_class', 'blankos_nav_menu_css_class', 1, 3);
 
 
 /* Utility functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	/**
-	 * Responsive Image Helper Function
+	 * Responsive Image Helper Function (src)
 	 *
 	 * @param string $image_id the id of the image (from ACF or similar)
 	 * @param string $image_size the size of the thumbnail image or custom image size
-	 * @param string $max_width the max width this image will be shown to build the sizes attribute 
+	 * @param string $max_width the max width this image will be shown to build the sizes attribute
 	 */
-	function blankos_responsive_image( $image_id,$image_size,$max_width ) {
+	function blankos_responsive_image_src( $image_id, $image_size, $max_width ) {
 
 		// check the image ID is not blank
 		if ( $image_id != '' ) {
@@ -157,9 +238,67 @@
 			$image_srcset = wp_get_attachment_image_srcset( $image_id, $image_size );
 
 			// generate the markup for the responsive image
-			echo 'src="'.$image_src.'" srcset="'.$image_srcset.'" sizes="(max-width: '.$max_width.') 100vw, '.$max_width.'"';
+			return 'src="'.$image_src.'" srcset="'.$image_srcset.'" sizes="(max-width: '.$max_width.') 100vw, '.$max_width.'"';
 		}
 	}
+
+
+	/**
+	 * Responsive Image Helper Function (img)
+	 */
+	function blankos_responsive_image( $image_id, $image_size, $max_width, $class='' ) {
+
+		$src = blankos_responsive_image_src( $image_id, $image_size, $max_width );
+
+		if ( $src ) {
+
+			$alt = 'alt="'. get_post_meta( $image_id, '_wp_attachment_image_alt', true) .'"';
+			$class = $class ? 'class="'. $class .'"' : '';
+
+			return "<img $src $alt $class>";
+		}
+
+
+	}
+
+
+	/**
+	 * Responsive Image Helper Function (ACF)
+	 */
+	function blankos_responsive_image_acf( $image_arr, $image_size, $max_width, $class='' ) {
+
+		// check the image ID is not blank
+		if ( is_array($image_arr) && isset($image_arr['id']) ) {
+
+			$src = blankos_responsive_image_src( $image_arr['id'], $image_size, $max_width );
+
+			if ( $src ) {
+
+				$alt = 'alt="'. $image_arr['alt'] .'"';
+				$class = $class ? 'class="'. $class .'"' : '';
+
+				return "<img $src $alt $class>";
+			}
+		}
+	}
+
+
+	/**
+	 * Add the wp-editor back into WordPress after it was removed in 4.2.2.
+	 *
+	 * @see https://wordpress.org/support/topic/you-are-currently-editing-the-page-that-shows-your-latest-posts?replies=3#post-7130021
+	 * @param $post
+	 * @return void
+	 */
+	function fix_no_editor_on_posts_page($post) {
+
+		if( $post->ID != get_option( 'page_for_posts' ) ) { return; }
+
+		remove_action( 'edit_form_after_title', '_wp_posts_page_notice' );
+		add_post_type_support( 'page', 'editor' );
+
+	}
+	add_action( 'edit_form_after_title', 'fix_no_editor_on_posts_page', 0 );
 
 
 	/**
@@ -200,26 +339,6 @@
 			$text = wp_trim_words($text, $excerpt_length, $excerpt_more);
 		}
 		return apply_filters('the_excerpt', $text);
-	}
-
-
-	/**
-	 * Explode a \n delimited textarea into a list
-	 */
-	function blankos_list_explode($str, $class=null) {
-
-		$lists = explode("\n", $str);
-		$lists_html = '';
-
-		if ($class) {
-			$class = ' class="'.trim($class).'"';
-		}
-
-		foreach ($lists as $list) {
-			$lists_html .= "<li{$class}>{$list}</li>";
-		}
-
-		return $lists_html;
 	}
 
 

@@ -20,7 +20,7 @@
 
 	<pre>		[TITLE]</pre>
 	<div style="margin-left: 16em;">
-		<h1><?php the_title(); ?></h1>
+		<h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
 	</div>
 
 	<pre>		[CONTENT]</pre>
