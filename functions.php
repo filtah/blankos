@@ -121,21 +121,6 @@
 
 
 	/**
-	 * Load google fonts in head..
-	 * uses GOOGLE_FONTS constant above
-	 */
-	function blankos_load_google_fonts() {
-
-		if ( ! defined( 'GOOGLE_FONTS' ) ) return;
-
-		echo '<!-- google fonts -->'."\n";
-		echo '<link href="https://fonts.googleapis.com/css?family='.GOOGLE_FONTS.'&display=swap" rel="stylesheet">'."\n";
-
-	}
-	add_action( 'wp_head', 'blankos_load_google_fonts', 1 );
-
-
-	/**
 	 * Cleanup..
 	 */
 	remove_action( 'wp_head', 'wp_generator' );
@@ -162,6 +147,14 @@
 	 * Enqueue styles..
 	 */
 	function blankos_enqueue_styles() {
+
+		/**
+		 * Load google fonts in head..
+		 * uses GOOGLE_FONTS constant above
+		 */
+		if ( defined( 'GOOGLE_FONTS' ) ) {
+			wp_enqueue_style( 'gf', 'https://fonts.googleapis.com/css?family='.GOOGLE_FONTS.'&display=swap', false, null );
+		}
 
 		wp_enqueue_style( 'libs', CSS.'/libs.css', false, VERSION );
 		wp_enqueue_style( 'main', CSS.'/main.css', false, VERSION );
