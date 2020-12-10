@@ -176,7 +176,7 @@
 /* Nav
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-	/*
+	/**
 	 * Add classes to the list items of the menus..
 	 */
 	function blankos_nav_menu_link_attributes( $atts, $item, $args ) {
@@ -190,7 +190,7 @@
 	add_filter( 'nav_menu_link_attributes', 'blankos_nav_menu_link_attributes', 1, 3 );
 
 
-	/*
+	/**
 	 * Add the option to add classes to list items..
 	 */
 	function blankos_nav_menu_css_class($classes, $item, $args) {
@@ -347,7 +347,7 @@
 	}
 
 
-	/*
+	/**
 	 * Echo image placholder
 	 */
 	function placehold($text='', $class='') {
@@ -355,7 +355,7 @@
 	}
 
 
-	/*
+	/**
 	 * Telephone number sanitize
 	 */
 	function tel($tel) {
@@ -363,7 +363,7 @@
 	}
 
 
-	/*
+	/**
 	 * Useful for debugging..
 	 */
 	function pp($var) {
@@ -373,20 +373,28 @@
 	}
 
 
+	/**
+	 * Print directly to the console in devtools..
+	 */
+	function pc($var) {
+		echo '<script>console.log(`', print_r($var, true), '`)</script>';
+	}
+
+
 /* ACF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	/**
-	* Set gmaps api key in back end..
-	*/
+	 * Set gmaps api key in back end..
+	 */
 	add_filter('acf/settings/google_api_key', function() {
 	  return API_KEY;
 	});
 
 
 	/**
-	* Translate the relationship result (requires qTranslateX)
-	*/
+	 * Translate the relationship result (requires qTranslateX)
+	 */
 	// function blankos_relationship_result( $title, $post, $field, $post_id ) {
 
 	// 	$editLang = $_COOKIE['qtrans_edit_language'];
@@ -402,8 +410,8 @@
 
 
 	/**
-	* Create ACF options page, if installed..
-	*/
+	 * Create ACF options page, if installed..
+	 */
 	function blankos_acf_add_options_page() {
 		if ( function_exists('acf_add_options_page') ) {
 			acf_add_options_page();
